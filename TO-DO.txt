@@ -1,0 +1,23 @@
+nivel 1:
+-categorias de productos para luego ser filtrados.
+-paginacion
+-lazy loading
+-notificaciones para el usuario(asignar a sus productos por categoria, cambiar su localidad, actualizar sus datos)
+
+-agregar tabla de calificacion de vendedor/comprador //muy pregunton//comprador fijo//vendedor no confiable
+
+nivel 2:
+-pagina de comprador, pagina de admin->elimina usuarios, bloquea(inactiva por cierto tiempo)
+-guardar favoritos
+-comprar, agregar al carrito
+-ver boletas
+
+nivel 3:
+-cambia diseño de la pagina, como se ven las cards
+-busqueda por imagen
+-usar electron para convertirlo en .apk o .exe
+
+
+nivel 4:
+-toggle de funcion: vendedor ->cliente o reversa
+-agregar servicio de repartidor
