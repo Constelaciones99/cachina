@@ -1,0 +1,62 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_DATABASE=cachina
+      - DB_USERNAME=root
+      - DB_PASSWORD=abc
+      - DB_SSL=false
+    networks:
+      - laravel_network
+    depends_on:
+      - mysql
+    ports:
+      - "8080:80"
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=cachina
+      - MYSQL_ROOT_PASSWORD=abc
+      - MYSQL_ALLOW_EMPTY_PASSWORD=no
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - laravel_network
+    ports:
+      - "3307:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=abc
+    networks:
+      - laravel_network
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  laravel_network:
+    driver: bridge

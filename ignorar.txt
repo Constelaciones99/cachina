@@ -1,0 +1,15 @@
+
+chown -R www-data:www-data /var/www/html/storage
+chown -R www-data:www-data /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage
+chmod -R 775 /var/www/html/bootstrap/cache
+
+mkdir -p /var/www/html/storage/framework/{sesion,views,cache}
+mkdir -p /var/www/html/bootstrap/cache
+
+php artisan config:clear
+php artisan cache:clear
+php artisan optimize
+php artisan config:cache
+
+php artisan migrate --database=mysql --force

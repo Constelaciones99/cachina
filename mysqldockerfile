@@ -1,0 +1,28 @@
+# Stage 1: Builder stage to import data
+FROM mysql:8.0 AS builder
+
+ENV MYSQL_ALLOW_EMPTY_PASSWORD yes
+ENV MYSQL_DATABASE example_db
+
+# Copy SQL dump files into the entrypoint initialization directory
+COPY ./init_data/ /docker-entrypoint-initdb.d/
+
+# You might run additional commands here to ensure data is imported
+# For example, if your SQL dump requires specific permissions or configurations
+# Note: The official MySQL image's entrypoint handles .sql files in initdb.d automatically
+# during the *first* container startup. This stage essentially sets up the data
+# within a temporary container.
+
+# Stage 2: Final runtime image
+FROM mysql:8.0
+
+# Copy the data directory from the builder stage
+# This copies the pre-initialized database files, including the imported data
+COPY --from=builder /var/lib/mysql /var/lib/mysql
+
+# Expose the default MySQL port
+EXPOSE 3306
+
+# Define environment variables for the final image (optional, if not set in the copied data)
+ENV MYSQL_ROOT_PASSWORD abc
+ENV MYSQL_DATABASE cachina

@@ -1,0 +1,28 @@
+# Archivos de configuración y documentación
+Dockerfile
+docker-compose.yml
+.dockerignore
+README.md
+TO-DO.txt
+
+# Git
+.git
+.gitignore
+
+# Node/Vite
+node_modules
+npm-debug.log
+vite.config.js
+
+# Composer
+composer.lock
+
+# Laravel cache y build
+storage/logs
+storage/framework
+vendor
+
+# Archivos del host
+*.env.local
+.env.backup
+*.log
