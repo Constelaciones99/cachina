@@ -1,7 +1,7 @@
 # Stage 1: Builder - instalar dependencias y construir aplicación
 FROM php:8.2-cli AS builder
 
-# Instalar dependencias del sistema
+# Instalar dependencias del sistema necesarias para composer
 RUN apt-get update && apt-get install -y \
     unzip \
     libonig-dev \
@@ -13,15 +13,20 @@ RUN apt-get update && apt-get install -y \
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# Establecer directorio de trabajo igual al destino final de Apache
 WORKDIR /var/www/html
 
-# Copiar composer
+# Copiar solo composer para aprovechar cache
 COPY composer.json composer.lock* ./
 
-# Instalar dependencias
-RUN composer install --no-dev --no-autoloader --no-scripts --prefer-dist --no-interaction
+# Instalar dependencias de PHP
+RUN if [ -f "composer.lock" ]; then \
+        composer install --no-dev --no-autoloader --no-scripts --prefer-dist --no-interaction; \
+    else \
+        composer install --no-dev --no-autoloader --no-scripts --prefer-dist --no-interaction; \
+    fi
 
-# Copiar el resto del código
+# Copiar el resto del código de la aplicación
 COPY . .
 
 # Optimizar autoloader
@@ -30,7 +35,7 @@ RUN composer dump-autoload --optimize
 # Stage 2: Producción - imagen final con Apache
 FROM php:8.2-apache
 
-# Instalar extensiones
+# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
     libonig-dev \
     libzip-dev \
@@ -39,27 +44,41 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Configurar Apache
+# Evitar warning de ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
-# Copiar aplicación
+# Configurar document root a /var/www/html/public
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/apache2.conf
+
+# Copiar archivos construidos desde el builder
 COPY --from=builder /var/www/html /var/www/html
 
-# Crear directorios para cache y logs con permisos
-RUN mkdir -p /tmp/cache /tmp/log \
-    && chmod -R 777 /tmp/cache /tmp/log \
-    && chown -R www-data:www-data /var/www/html
+# Crear directorios Laravel necesarios
+RUN mkdir -p /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/bootstrap/cache
+
+# Ajustar permisos para Apache
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Habilitar mod_rewrite
 RUN a2enmod rewrite
 
 # Configurar OPcache
 RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/opcache.ini
+    && echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.max_accelerated_files=10000" >> /usr/local/etc/php/conf.d/opcache.ini \
+    && echo "opcache.revalidate_freq=2" >> /usr/local/etc/php/conf.d/opcache.ini
+
+# Script de inicio para ejecutar comandos de Laravel
+COPY start.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 80
 
-COPY start.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/start.sh
-CMD ["start.sh"]
+# Usar el script de inicio personalizado
+CMD ["/usr/local/bin/start.sh"]

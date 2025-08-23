@@ -1,13 +1,24 @@
 #!/bin/bash
 set -e
 
-# Crear directorios temporales
-mkdir -p /tmp/cache /tmp/log
-chmod -R 777 /tmp/cache /tmp/log
+# Ajustar permisos (por si acaso)
+chown -R www-data:www-data /var/www/html/storage
+chown -R www-data:www-data /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage
+chmod -R 775 /var/www/html/bootstrap/cache
 
-# Limpiar cache de Symfony
-php bin/console cache:clear --env=prod --no-debug
-php bin/console cache:warmup --env=prod
+# Crear directorios necesarios
+mkdir -p /var/www/html/storage/framework/{sessions,views,cache}
+mkdir -p /var/www/html/bootstrap/cache
 
-# Ejecutar Apache
+# Ejecutar comandos de Laravel para optimización
+php artisan config:clear
+php artisan cache:clear
+php artisan optimize
+php artisan config:cache
+
+# Ejecutar migraciones si es necesario (solo en producción)
+# php artisan migrate --force
+
+# Iniciar Apache
 apache2-foreground
