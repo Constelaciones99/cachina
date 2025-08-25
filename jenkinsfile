@@ -1,3 +1,17 @@
+properties([
+    buildDiscarder(logRotator(
+        artifactDaysToKeepStr: '', 
+        artifactNumToKeepStr: '', 
+        daysToKeepStr: '', 
+        numToKeepStr: '10')), 
+    pipelineTriggers([GenericTrigger(
+        causeString: 'Generic Cause', 
+        regexpFilterExpression: '', 
+        regexpFilterText: '', 
+        token: 'cachina', 
+        tokenCredentialId: '')]
+        )])
+
 node {
 
     stage('checkout') {
