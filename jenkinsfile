@@ -5,7 +5,7 @@ node {
     }
    
     stage('checkout') {
-        sh 'echo "hola, mundirijillo"'
+        sh 'echo "hola, desde hook git"'
         sh 'ls -la'
     }
    
