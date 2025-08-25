@@ -8,5 +8,9 @@ node {
         sh 'echo "Estamos en la etapa del cambio, perros!"'
         sh 'ls -la'
     }
+
+    stage('Build') {
+        sh 'npm install'
+    }
    
 }
