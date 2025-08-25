@@ -1,0 +1,7 @@
+node {
+   checkout scmGit(branches: [[name: 'master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Constelaciones99/cachina.git']])
+
+   sh 'echo "hola, mundirijillo"'
+   
+   sh 'ls -la'
+}
