@@ -49,7 +49,7 @@ services:
     networks:
       - laravel_network
     ports:
-      - "8081:80"
+      - "8089:80"
     depends_on:
       - mysql
 
